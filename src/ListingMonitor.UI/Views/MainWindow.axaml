@@ -1,0 +1,717 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ListingMonitor.UI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="800"
+        x:Class="ListingMonitor.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="🎯 İlan Takip Sistemi"
+        Width="1280" Height="800"
+        WindowStartupLocation="CenterScreen"
+        Background="{Binding ThemeBackground}">
+
+    <Window.Styles>
+        <!-- Modern Button Styles -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#3B82F6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="600"/>
+        </Style>
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#2563EB"/>
+        </Style>
+        
+        <Style Selector="Button.success">
+            <Setter Property="Background" Value="#10B981"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="600"/>
+        </Style>
+        <Style Selector="Button.success:pointerover">
+            <Setter Property="Background" Value="#059669"/>
+        </Style>
+        
+        <Style Selector="Button.warning">
+            <Setter Property="Background" Value="#F59E0B"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="600"/>
+        </Style>
+        <Style Selector="Button.warning:pointerover">
+            <Setter Property="Background" Value="#D97706"/>
+        </Style>
+        
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#EF4444"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="600"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover">
+            <Setter Property="Background" Value="#DC2626"/>
+        </Style>
+        
+        <Style Selector="Button.ghost">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{Binding ThemeTextSecondary}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Modern Header -->
+        <Border Grid.Row="0" Background="{Binding ThemeCardBg}" Padding="24,16">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Logo & Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                    <Border Background="#3B82F6" CornerRadius="12" Width="44" Height="44">
+                        <TextBlock Text="🎯" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="İlan Takip Sistemi" FontSize="20" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                        <TextBlock Text="Otomatik ilan izleme ve bildirim" FontSize="12" Foreground="{Binding ThemeTextSecondary}"/>
+                    </StackPanel>
+                </StackPanel>
+                
+                <!-- Status -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                    <Border Background="{Binding ThemeBackground}" CornerRadius="20" Padding="16,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Ellipse Width="8" Height="8" Fill="#10B981"/>
+                            <TextBlock Text="{Binding StatusText}" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+                        </StackPanel>
+                    </Border>
+                    <Button Content="{Binding SchedulerButtonText}" 
+                           Command="{Binding ToggleSchedulerCommand}"
+                           Classes="success"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}" Background="Transparent" Padding="0">
+            <TabControl.Styles>
+                <Style Selector="TabItem">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="{Binding ThemeTextSecondary}"/>
+                    <Setter Property="Padding" Value="20,14"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="FontWeight" Value="500"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Style>
+                <Style Selector="TabItem:selected">
+                    <Setter Property="Foreground" Value="{Binding ThemeText}"/>
+                    <Setter Property="Background" Value="{Binding ThemeCardBg}"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Style>
+                <!-- Alt çizgiyi kaldır -->
+                <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+                    <Setter Property="IsVisible" Value="False"/>
+                </Style>
+                <Style Selector="TabItem /template/ Border">
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Style>
+            </TabControl.Styles>
+            
+            <!-- 📊 Dashboard Tab -->
+            <TabItem Header="📊 Dashboard">
+                <ScrollViewer Background="{Binding ThemeBackground}">
+                    <StackPanel Margin="24" Spacing="24">
+                        
+                        <!-- Stats Grid -->
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="20">
+                            <!-- Sites Card -->
+                            <Border Grid.Column="0" Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                                <StackPanel Spacing="16">
+                                    <Border Background="#3B82F620" CornerRadius="12" Width="48" Height="48" HorizontalAlignment="Left">
+                                        <TextBlock Text="🌐" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding TotalSites}" FontSize="36" FontWeight="Bold" Foreground="#3B82F6"/>
+                                    <TextBlock Text="Aktif Site" FontSize="14" Foreground="{Binding ThemeTextSecondary}"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Rules Card -->
+                            <Border Grid.Column="1" Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                                <StackPanel Spacing="16">
+                                    <Border Background="#10B98120" CornerRadius="12" Width="48" Height="48" HorizontalAlignment="Left">
+                                        <TextBlock Text="🔔" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding TotalRules}" FontSize="36" FontWeight="Bold" Foreground="#10B981"/>
+                                    <TextBlock Text="Alarm Kuralı" FontSize="14" Foreground="{Binding ThemeTextSecondary}"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Today Listings Card -->
+                            <Border Grid.Column="2" Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                                <StackPanel Spacing="16">
+                                    <Border Background="#F59E0B20" CornerRadius="12" Width="48" Height="48" HorizontalAlignment="Left">
+                                        <TextBlock Text="📋" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding TodayListings}" FontSize="36" FontWeight="Bold" Foreground="#F59E0B"/>
+                                    <TextBlock Text="Bugün Bulunan" FontSize="14" Foreground="{Binding ThemeTextSecondary}"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Emails Card -->
+                            <Border Grid.Column="3" Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                                <StackPanel Spacing="16">
+                                    <Border Background="#8B5CF620" CornerRadius="12" Width="48" Height="48" HorizontalAlignment="Left">
+                                        <TextBlock Text="📧" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding TodayEmails}" FontSize="36" FontWeight="Bold" Foreground="#8B5CF6"/>
+                                    <TextBlock Text="E-posta Gönderildi" FontSize="14" Foreground="{Binding ThemeTextSecondary}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Recent Listings -->
+                        <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="📋 Son İlanlar" FontSize="18" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                                    <Button Grid.Column="1" Content="🔄 Yenile" Command="{Binding RefreshDashboardCommand}" Classes="ghost"/>
+                                </Grid>
+                                
+                                <ListBox ItemsSource="{Binding RecentListings}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        MaxHeight="400">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeBackground}" CornerRadius="12" Padding="16" Margin="0,4">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <StackPanel Grid.Column="0" Spacing="8">
+                                                        <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="600" Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeText}" TextWrapping="Wrap"/>
+                                                        <StackPanel Orientation="Horizontal" Spacing="16">
+                                                            <TextBlock Text="{Binding Site.Name}" FontSize="12" Foreground="#3B82F6"/>
+                                                            <TextBlock Text="{Binding City}" FontSize="12" Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeTextSecondary}"/>
+                                                            <TextBlock Text="{Binding Price, StringFormat='💰 {0:N0} TL'}" FontSize="12" Foreground="#10B981" FontWeight="600"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding FirstSeenAt, StringFormat={}{0:HH:mm}}" FontSize="12" Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeTextSecondary}" VerticalAlignment="Top"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- 🌐 Sites Tab -->
+            <TabItem Header="🌐 Siteler">
+                <DockPanel Margin="24" Background="Transparent">
+                    <StackPanel DockPanel.Dock="Top" Spacing="16" Margin="0,0,0,20">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="Site Yönetimi" FontSize="24" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                                <Button Content="➕ Site Ekle" Command="{Binding AddSiteCommand}" Classes="success"/>
+                                <Button Content="🔄 Yenile" Command="{Binding RefreshSitesCommand}" Classes="ghost"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                        <ListBox ItemsSource="{Binding Sites}" 
+                                SelectedItem="{Binding SelectedSite}"
+                                Background="Transparent"
+                                BorderThickness="0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeBackground}" CornerRadius="12" Padding="16" Margin="0,6">
+                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                            <!-- Icon -->
+                                            <Border Grid.Column="0" Background="#3B82F620" CornerRadius="8" Width="44" Height="44" Margin="0,0,16,0">
+                                                <TextBlock Text="🌐" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            
+                                            <!-- Main Content -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="600" Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeText}"/>
+                                                    <!-- Active Badge -->
+                                                    <Border CornerRadius="8" Padding="8,3" IsVisible="{Binding IsActive}" Background="#10B98130">
+                                                        <TextBlock Text="● Aktif" FontSize="10" FontWeight="600" Foreground="#10B981"/>
+                                                    </Border>
+                                                    <Border CornerRadius="8" Padding="8,3" IsVisible="{Binding !IsActive}" Background="#94A3B830">
+                                                        <TextBlock Text="○ Pasif" FontSize="10" FontWeight="600" Foreground="#94A3B8"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                
+                                                <!-- URL -->
+                                                <TextBlock Text="{Binding BaseUrl}" FontSize="11" 
+                                                          Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeTextSecondary}" 
+                                                          TextTrimming="CharacterEllipsis" MaxWidth="350"/>
+                                                
+                                                <!-- Tags -->
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <Border Background="#8B5CF615" CornerRadius="6" Padding="8,3">
+                                                        <TextBlock Text="{Binding SiteType, StringFormat='🏷️ {0}'}" FontSize="10" Foreground="#8B5CF6"/>
+                                                    </Border>
+                                                    <Border Background="#3B82F615" CornerRadius="6" Padding="8,3">
+                                                        <TextBlock Text="{Binding CheckIntervalMinutes, StringFormat='⏱️ {0} dk'}" FontSize="10" Foreground="#3B82F6"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            
+                                            <!-- Action Buttons -->
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="12,0,0,0">
+                                                <Button Content="✏️" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditSiteCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Düzenle"
+                                                        Background="#3B82F6" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                                <Button Content="🔄" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ScrapeSiteCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Scrape Başlat"
+                                                        Background="#10B981" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                                <Button Content="🔀" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleSiteActiveCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Aktif/Pasif"
+                                                        Background="#F59E0B" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                                <Button Content="🗑️" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteSiteCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Sil"
+                                                        Background="#64748B" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                    
+                    <!-- Boş Liste Mesajı -->
+                    <Border IsVisible="{Binding !Sites.Count}" Background="#3B82F610" CornerRadius="12" Padding="40" Margin="0,20,0,0">
+                        <StackPanel HorizontalAlignment="Center" Spacing="12">
+                            <TextBlock Text="🌐" FontSize="48" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Henüz site eklenmedi" FontSize="18" FontWeight="600" Foreground="{Binding ThemeText}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="İlan takibi için site ekleyin" FontSize="13" Foreground="{Binding ThemeTextSecondary}" HorizontalAlignment="Center"/>
+                            <Button Content="➕ İlk Siteyi Ekle" Command="{Binding AddSiteCommand}" Classes="success" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </DockPanel>
+            </TabItem>
+
+            <!-- 🔔 Rules Tab -->
+            <TabItem Header="🔔 Kurallar">
+                <DockPanel Margin="24" Background="Transparent">
+                    <StackPanel DockPanel.Dock="Top" Spacing="16" Margin="0,0,0,20">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="Alarm Kuralları" FontSize="24" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                                <Button Content="➕ Kural Ekle" Command="{Binding AddRuleCommand}" Classes="warning"/>
+                                <Button Content="🔄 Yenile" Command="{Binding RefreshRulesCommand}" Classes="ghost"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Matched Listings Panel - Modern Tasarım -->
+                        <Border IsVisible="{Binding IsShowingMatchedListings}" 
+                                Background="{Binding ThemeCardBg}" 
+                                BorderBrush="#3B82F6" BorderThickness="2" 
+                                CornerRadius="16" Padding="20">
+                            <StackPanel Spacing="16">
+                                <!-- Header -->
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                        <Border Background="#3B82F620" CornerRadius="8" Width="36" Height="36">
+                                            <TextBlock Text="🎯" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding CurrentAnalysisRule.Name, FallbackValue='Kural Analizi'}" 
+                                                      FontWeight="Bold" FontSize="15" Foreground="{Binding ThemeText}"/>
+                                            <TextBlock Text="{Binding MatchedListings.Count, StringFormat='{}{0} ilan eşleşti'}" 
+                                                      FontSize="11" Foreground="#3B82F6"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Content="✕ Kapat" Command="{Binding HideMatchedListingsCommand}" 
+                                            Background="#64748B" Foreground="White" Padding="12,6" CornerRadius="6"/>
+                                </Grid>
+                                
+                                <!-- Analiz Detayları -->
+                                <Border Background="{Binding ThemeBackground}" CornerRadius="8" Padding="12">
+                                    <TextBlock Text="{Binding AnalysisResult}" TextWrapping="Wrap" FontSize="12" Foreground="{Binding ThemeTextSecondary}"/>
+                                </Border>
+                                
+                                <!-- İlan Listesi -->
+                                <ScrollViewer MaxHeight="200">
+                                    <ItemsControl ItemsSource="{Binding MatchedListings}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeBackground}" 
+                                                        CornerRadius="8" Padding="12" Margin="0,4" 
+                                                        BorderBrush="#3B82F630" BorderThickness="1">
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <StackPanel Grid.Column="0" Spacing="4">
+                                                            <TextBlock Text="{Binding Title}" FontWeight="600" FontSize="13" 
+                                                                      Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeText}"
+                                                                      TextTrimming="CharacterEllipsis"/>
+                                                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                                                <TextBlock Text="{Binding Site.Name, StringFormat='🌐 {0}'}" FontSize="10" Foreground="#3B82F6"/>
+                                                                <TextBlock Text="{Binding City, StringFormat='📍 {0}'}" FontSize="10" 
+                                                                          Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeTextSecondary}"/>
+                                                                <TextBlock Text="{Binding Company, StringFormat='🏢 {0}'}" FontSize="10" 
+                                                                          Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeTextSecondary}"
+                                                                          IsVisible="{Binding Company, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <Border Grid.Column="1" Background="#10B98120" CornerRadius="6" Padding="8,4" VerticalAlignment="Center"
+                                                                IsVisible="{Binding Price, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                            <TextBlock Text="{Binding Price, StringFormat='💰 {0:N0}'}" FontSize="11" FontWeight="600" Foreground="#10B981"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                                
+                                <!-- Alt Butonlar -->
+                                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                                    <Button Content="📧 Test Mail Gönder" Command="{Binding SendTestEmailForCurrentRuleCommand}" 
+                                            Background="#10B981" Foreground="White" Padding="16,8" CornerRadius="6"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                        <ListBox ItemsSource="{Binding Rules}" 
+                                SelectedItem="{Binding SelectedRule}"
+                                Background="Transparent"
+                                BorderThickness="0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeBackground}" CornerRadius="12" Padding="16" Margin="0,6">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <!-- Icon -->
+                                            <Border Grid.Column="0" Background="#F59E0B20" CornerRadius="8" Width="44" Height="44" Margin="0,0,16,0">
+                                                <TextBlock Text="🔔" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            
+                                            <!-- Main Content -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="600" Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeText}"/>
+                                                    <!-- Active Badge - Daha okunabilir renkler -->
+                                                    <Border CornerRadius="8" Padding="8,3" IsVisible="{Binding IsActive}" Background="#10B98130">
+                                                        <TextBlock Text="● Aktif" FontSize="10" FontWeight="600" Foreground="#10B981"/>
+                                                    </Border>
+                                                    <Border CornerRadius="8" Padding="8,3" IsVisible="{Binding !IsActive}" Background="#94A3B830">
+                                                        <TextBlock Text="○ Pasif" FontSize="10" FontWeight="600" Foreground="#94A3B8"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                
+                                                <!-- Keywords -->
+                                                <TextBlock Text="{Binding Keywords, TargetNullValue='Filtre yok', FallbackValue='Filtre yok'}" 
+                                                          FontSize="12" 
+                                                          Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeTextSecondary}" 
+                                                          TextTrimming="CharacterEllipsis" MaxWidth="350"/>
+                                                
+                                                <!-- Tags -->
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <Border Background="#3B82F615" CornerRadius="6" Padding="8,3">
+                                                        <TextBlock Text="{Binding Site.Name, TargetNullValue='Tüm Siteler', StringFormat='📍 {0}'}" 
+                                                                  FontSize="10" Foreground="#3B82F6"/>
+                                                    </Border>
+                                                    <Border Background="#F59E0B15" CornerRadius="6" Padding="8,3"
+                                                            IsVisible="{Binding City, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                        <TextBlock Text="{Binding City, StringFormat='🏙️ {0}'}" 
+                                                                  FontSize="10" Foreground="#F59E0B"/>
+                                                    </Border>
+                                                    <Border Background="#10B98115" CornerRadius="6" Padding="8,3">
+                                                        <TextBlock Text="{Binding EmailsToNotify, StringFormat='📧 {0}'}" 
+                                                                  FontSize="10" Foreground="#10B981" TextTrimming="CharacterEllipsis" MaxWidth="100"/>
+                                                    </Border>
+                                                    <Border Background="#8B5CF615" CornerRadius="6" Padding="8,3" 
+                                                            IsVisible="{Binding EnableScheduledEmail}">
+                                                        <TextBlock Text="{Binding EmailIntervalHours, StringFormat='⏱️ {0}h'}" FontSize="10" Foreground="#8B5CF6"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            
+                                            <!-- Action Buttons -->
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="12,0,0,0">
+                                                <Button Content="✏️" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditRuleCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Düzenle"
+                                                        Background="#3B82F6" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                                <Button Content="🎯" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowMatchedListingsCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Eşleşen İlanlar"
+                                                        Background="#F59E0B" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                                <Button Content="📧" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SendRuleTestEmailCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Test Mail"
+                                                        Background="#10B981" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                                <Button Content="🔄" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleRuleActiveCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Aktif/Pasif"
+                                                        Background="#8B5CF6" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                                <Button Content="🗑️" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteRuleCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Sil"
+                                                        Background="#64748B" Foreground="White" 
+                                                        Padding="8,6" FontSize="12" CornerRadius="6"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                    
+                    <!-- Boş Liste Mesajı -->
+                    <Border IsVisible="{Binding !Rules.Count}" Background="#F59E0B10" CornerRadius="12" Padding="40" Margin="0,20,0,0">
+                        <StackPanel HorizontalAlignment="Center" Spacing="12">
+                            <TextBlock Text="🔔" FontSize="48" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Henüz alarm kuralı yok" FontSize="18" FontWeight="600" Foreground="{Binding ThemeText}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Yeni ilan bildirimlerini almak için kural ekleyin" FontSize="13" Foreground="{Binding ThemeTextSecondary}" HorizontalAlignment="Center"/>
+                            <Button Content="➕ İlk Kuralı Ekle" Command="{Binding AddRuleCommand}" Classes="warning" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </DockPanel>
+            </TabItem>
+
+            <!-- 📋 Listings Tab -->
+            <TabItem Header="📋 İlanlar">
+                <DockPanel Margin="24" Background="Transparent">
+                    <StackPanel DockPanel.Dock="Top" Spacing="16" Margin="0,0,0,20">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding AllListings.Count, StringFormat='📋 Toplam {0} İlan'}" FontSize="24" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                        </Grid>
+                        
+                        <!-- Filters -->
+                        <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <TextBlock Text="🔍 Filtre:" VerticalAlignment="Center" Foreground="{Binding ThemeTextSecondary}"/>
+                                <ComboBox ItemsSource="{Binding SiteFilterOptions}" 
+                                          SelectedIndex="{Binding SelectedSiteFilterIndex}" 
+                                          Width="250"
+                                          Background="{Binding ThemeCardBg}" 
+                                          Foreground="{Binding ThemeText}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Content="🔄 Filtrele" Command="{Binding RefreshListingsCommand}" Classes="primary"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                        <ListBox ItemsSource="{Binding AllListings}"
+                                SelectedItem="{Binding SelectedListing}"
+                                Background="Transparent"
+                                BorderThickness="0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeBackground}" CornerRadius="12" Padding="16" Margin="0,4">
+                                        <StackPanel Spacing="8">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="15" FontWeight="600" Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeText}" TextWrapping="Wrap"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding FirstSeenAt, StringFormat={}{0:dd.MM HH:mm}}" FontSize="11" Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeTextSecondary}"/>
+                                            </Grid>
+                                            
+                                            <Button Content="{Binding Url}" 
+                                                   Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).OpenUrlCommand}"
+                                                   CommandParameter="{Binding Url}"
+                                                   Background="Transparent" BorderThickness="0" Foreground="#3B82F6" 
+                                                   HorizontalAlignment="Left" Padding="0" Cursor="Hand" FontSize="12"/>
+                                            
+                                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                                <TextBlock Text="{Binding Site.Name}" FontSize="12" Foreground="#3B82F6"/>
+                                                <TextBlock Text="{Binding City, StringFormat='📍 {0}'}" FontSize="12" Foreground="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ThemeTextSecondary}"/>
+                                                <TextBlock Text="{Binding Price, StringFormat='💰 {0:N0} TL'}" FontSize="12" Foreground="#10B981" FontWeight="600"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ⚙️ Settings Tab -->
+            <TabItem Header="⚙️ Ayarlar">
+                <ScrollViewer Background="{Binding ThemeBackground}">
+                    <StackPanel Margin="24" Spacing="20">
+                        
+                        <!-- Theme Settings -->
+                        <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                            <StackPanel Spacing="16">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Background="#8B5CF620" CornerRadius="8" Width="40" Height="40">
+                                        <TextBlock Text="🎨" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Tema Ayarları" FontSize="16" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                                        <TextBlock Text="Gece veya gündüz modunu seçin" FontSize="12" Foreground="{Binding ThemeTextSecondary}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="16">
+                                    <TextBlock Text="🌙 Gece Modu" VerticalAlignment="Center" FontSize="14" Foreground="{Binding ThemeText}"/>
+                                    <ToggleSwitch IsChecked="{Binding IsDarkTheme}" 
+                                                 OnContent="Gece" OffContent="Gündüz"/>
+                                    <TextBlock Text="☀️ Gündüz Modu" VerticalAlignment="Center" FontSize="14" Foreground="{Binding ThemeText}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- SMTP Settings -->
+                        <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Background="#3B82F620" CornerRadius="8" Width="40" Height="40">
+                                        <TextBlock Text="📧" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="SMTP Ayarları" FontSize="16" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                                        <TextBlock Text="E-posta gönderim yapılandırması" FontSize="12" Foreground="{Binding ThemeTextSecondary}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Button Content="⚙️ SMTP Ayarlarını Düzenle" Command="{Binding OpenSmtpSettingsCommand}" Classes="primary" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- İlan Mail Gönder -->
+                        <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                            <StackPanel Spacing="16">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Background="#10B98120" CornerRadius="8" Width="40" Height="40">
+                                        <TextBlock Text="📤" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="İlan Mail Gönder" FontSize="16" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                                        <TextBlock Text="Seçili sitenin ilanlarını mail olarak gönder" FontSize="12" Foreground="{Binding ThemeTextSecondary}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="Site Seçimi:" FontSize="13" Foreground="{Binding ThemeTextSecondary}"/>
+                                        <ComboBox ItemsSource="{Binding MailSiteOptions}" 
+                                                 SelectedIndex="{Binding SelectedMailSiteIndex}"
+                                                 Width="250" HorizontalAlignment="Left"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4" Margin="20,0,0,0">
+                                        <TextBlock Text="Alıcı Email:" FontSize="13" Foreground="{Binding ThemeTextSecondary}"/>
+                                        <TextBox Text="{Binding MailRecipientEmail}" Width="250" Watermark="email@example.com"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
+                                        <Button Content="📧 İlanları Mail Gönder" Command="{Binding SendListingsEmailCommand}" Classes="success"/>
+                                        <TextBlock Text="{Binding MailStatusMessage}" VerticalAlignment="Center" FontSize="12" Foreground="{Binding ThemeTextSecondary}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Quick Settings -->
+                        <Border Background="{Binding ThemeCardBg}" CornerRadius="16" Padding="20">
+                            <StackPanel Spacing="16">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Background="#F59E0B20" CornerRadius="8" Width="40" Height="40">
+                                        <TextBlock Text="⚡" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Hızlı Ayarlar" FontSize="16" FontWeight="Bold" Foreground="{Binding ThemeText}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Kontrol Aralığı (dakika)" FontSize="13" Foreground="{Binding ThemeTextSecondary}"/>
+                                    <NumericUpDown Value="{Binding CheckIntervalMinutes}" Minimum="1" Maximum="1440" Width="200" HorizontalAlignment="Left"/>
+                                </StackPanel>
+                                
+                                <Button Content="📧 Test Mail Gönder" Command="{Binding TestEmailCommand}" Classes="primary" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Database Management -->
+                        <Border Background="#EF444410" CornerRadius="16" Padding="20" BorderBrush="#EF4444" BorderThickness="1">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Background="#EF444420" CornerRadius="8" Width="40" Height="40">
+                                        <TextBlock Text="🗃️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Veritabanı Yönetimi" FontSize="16" FontWeight="Bold" Foreground="#EF4444"/>
+                                        <TextBlock Text="⚠️ Dikkat: Bu işlemler geri alınamaz!" FontSize="12" Foreground="#F87171"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Button Content="🗑️ İlanları ve Logları Temizle" Command="{Binding ResetListingsDataCommand}" Classes="danger" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Status -->
+                        <TextBlock Text="{Binding SettingsMessage}" 
+                                  Foreground="#10B981" 
+                                  FontWeight="600" 
+                                  FontSize="14"
+                                  TextWrapping="Wrap"
+                                  IsVisible="{Binding SettingsMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- 📋 Logs Tab -->
+            <TabItem Header="📋 Loglar">
+                <DockPanel Margin="24" Background="Transparent">
+                    <StackPanel DockPanel.Dock="Top" Spacing="16" Margin="0,0,0,20">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="Sistem Logları" FontSize="24" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                            <Button Grid.Column="1" Content="🗑️ Temizle" Command="{Binding ClearConsoleLogsCommand}" Classes="ghost"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Background="#0D1117" CornerRadius="16" Padding="20">
+                        <ListBox ItemsSource="{Binding ConsoleLogs}" 
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 FontFamily="JetBrains Mono,Consolas,Monaco,monospace"
+                                 FontSize="12">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Message}" 
+                                              TextWrapping="Wrap"
+                                              Foreground="#8B949E"
+                                              Padding="4"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

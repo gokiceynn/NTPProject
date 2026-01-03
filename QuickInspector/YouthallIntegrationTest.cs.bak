@@ -1,0 +1,68 @@
+using ListingMonitor.Infrastructure.Scraping;
+using ListingMonitor.Infrastructure.Scraping.Adapters;
+
+namespace ListingMonitor.Test;
+
+public class YouthallIntegrationTest
+{
+    public static async Task Main(string[] args)
+    {
+        Console.WriteLine("🚀 Youthall Integration Test");
+        Console.WriteLine("=============================");
+        
+        try
+        {
+            // Doğrudan modern adapter test
+            Console.WriteLine("🔄 ModernScrapingService testi başlatılıyor...");
+            
+            var scrapingService = new ModernScrapingService();
+            
+            // Youthall sitesi mock
+            var youthallSite = new ListingMonitor.Domain.Entities.Site
+            {
+                Id = 4,
+                Name = "Youthall",
+                BaseUrl = "https://www.youthall.com/tr/jobs/",
+                SiteType = ListingMonitor.Domain.Enums.SiteType.Manual
+            };
+            
+            Console.WriteLine($"✅ Youthall sitesi: {youthallSite.Name}");
+            Console.WriteLine($"   URL: {youthallSite.BaseUrl}");
+            
+            // Scraping test
+            var listings = await scrapingService.FetchListingsAsync(youthallSite, null);
+            
+            Console.WriteLine($"\n📊 Sonuç: {listings.Count} ilan bulundu");
+            
+            if (listings.Any())
+            {
+                Console.WriteLine("\n🏆 İlk 3 ilan:");
+                foreach (var listing in listings.Take(3))
+                {
+                    Console.WriteLine($"   • {listing.Title}");
+                    Console.WriteLine($"     🏢 {listing.Company}");
+                    Console.WriteLine($"     🔗 {listing.Url}");
+                    Console.WriteLine($"     🆔 {listing.ExternalId}");
+                    Console.WriteLine($"     📝 {listing.Description}");
+                    Console.WriteLine();
+                }
+            }
+            
+            Console.WriteLine("\n🎉 Youthall entegrasyon testi BAŞARILI!");
+            Console.WriteLine("🚀 ModernScrapingService çalışıyor - ScraperSchedulerService'e hazır!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"\n❌ Test hatası: {ex.Message}");
+            Console.WriteLine($"   Stack: {ex.StackTrace}");
+        }
+        finally
+        {
+            // Cleanup
+            GC.Collect();
+        }
+        
+        Console.WriteLine("\n🏁 Test tamamlandı! Çıkmak için Enter...");
+        Console.ReadLine();
+    }
+}

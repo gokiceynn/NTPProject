@@ -1,0 +1,194 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ListingMonitor.UI.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="750"
+        x:Class="ListingMonitor.UI.Views.AlertRuleEditWindow"
+        x:DataType="vm:AlertRuleEditViewModel"
+        Title="{Binding WindowTitle}"
+        Width="650" Height="750"
+        WindowStartupLocation="CenterOwner"
+        Background="{Binding ThemeBg}">
+
+  <Design.DataContext>
+    <vm:AlertRuleEditViewModel/>
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto,*,Auto,Auto">
+    <!-- Header -->
+    <Border Grid.Row="0" Background="{Binding ThemeCardBg}" Padding="24,20">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{Binding WindowTitle}" FontSize="20" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+        <TextBlock Text="İlan filtrelerinizi ve bildirim ayarlarınızı yapılandırın" FontSize="12" Foreground="{Binding ThemeTextSecondary}"/>
+      </StackPanel>
+    </Border>
+
+    <!-- Content -->
+    <ScrollViewer Grid.Row="1" Padding="24">
+      <StackPanel Spacing="20">
+        
+        <!-- Basic Info -->
+        <Border Background="{Binding ThemeCardBg}" CornerRadius="12" Padding="20">
+          <StackPanel Spacing="16">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Border Background="#3B82F620" CornerRadius="8" Width="36" Height="36">
+                <TextBlock Text="📋" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Temel Bilgiler" FontSize="15" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                <TextBlock Text="Kural adı ve hedef site" FontSize="11" Foreground="{Binding ThemeTextSecondary}"/>
+              </StackPanel>
+            </StackPanel>
+            
+            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
+              <TextBlock Grid.Column="0" Grid.Row="0" Text="Kural Adı:" VerticalAlignment="Center" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+              <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Name}" Watermark="Örn: Burs Bildirimleri" 
+                       Background="{Binding ThemeInputBg}" Foreground="{Binding ThemeText}" BorderBrush="{Binding ThemeBorder}" Padding="12,8"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="1" Text="Hedef Site:" VerticalAlignment="Center" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+              <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding SiteOptions}" 
+                       SelectedIndex="{Binding SelectedSiteIndex}"
+                       Background="{Binding ThemeInputBg}" Foreground="{Binding ThemeText}" BorderBrush="{Binding ThemeBorder}"/>
+              
+              <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Spacing="20">
+                <CheckBox Content="✅ Aktif" IsChecked="{Binding IsActive}" Foreground="{Binding ThemeText}"/>
+                <CheckBox Content="🆕 Sadece Yeni İlanlar" IsChecked="{Binding OnlyNewListings}" Foreground="{Binding ThemeText}"/>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- Filter Criteria -->
+        <Border Background="{Binding ThemeCardBg}" CornerRadius="12" Padding="20">
+          <StackPanel Spacing="16">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Border Background="#10B98120" CornerRadius="8" Width="36" Height="36">
+                <TextBlock Text="🔍" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Filtre Kriterleri" FontSize="15" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                <TextBlock Text="İlanları filtrelemek için kriterler" FontSize="11" Foreground="{Binding ThemeTextSecondary}"/>
+              </StackPanel>
+            </StackPanel>
+            
+            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
+              <TextBlock Grid.Column="0" Grid.Row="0" Text="Anahtar Kelimeler:" VerticalAlignment="Top" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+              <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4">
+                <TextBox Text="{Binding Keywords}" 
+                         Watermark="burs, scholarship, staj (virgülle ayırın)" 
+                         AcceptsReturn="True" TextWrapping="Wrap" Height="70"
+                         Background="{Binding ThemeInputBg}" Foreground="{Binding ThemeText}" BorderBrush="{Binding ThemeBorder}" Padding="12,8"/>
+                <TextBlock Text="💡 Birden fazla kelime virgülle ayırın. İlan başlığı veya şirket adında aranır." 
+                           FontSize="10" Foreground="{Binding ThemeTextSecondary}"/>
+              </StackPanel>
+              
+              <TextBlock Grid.Column="0" Grid.Row="1" Text="Şehir:" VerticalAlignment="Center" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+              <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding City}" Watermark="İstanbul, Ankara, Remote" 
+                       Background="{Binding ThemeInputBg}" Foreground="{Binding ThemeText}" BorderBrush="{Binding ThemeBorder}" Padding="12,8"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="2" Text="Min Fiyat:" VerticalAlignment="Center" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+              <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding MinPrice}" Minimum="0" Maximum="1000000" 
+                             FormatString="N0" Increment="1000" 
+                             Background="{Binding ThemeInputBg}" Foreground="{Binding ThemeText}" BorderBrush="{Binding ThemeBorder}"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="3" Text="Max Fiyat:" VerticalAlignment="Center" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+              <NumericUpDown Grid.Column="1" Grid.Row="3" Value="{Binding MaxPrice}" Minimum="0" Maximum="1000000" 
+                             FormatString="N0" Increment="1000"
+                             Background="{Binding ThemeInputBg}" Foreground="{Binding ThemeText}" BorderBrush="{Binding ThemeBorder}"/>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- Notification Settings -->
+        <Border Background="{Binding ThemeCardBg}" CornerRadius="12" Padding="20">
+          <StackPanel Spacing="16">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Border Background="#F59E0B20" CornerRadius="8" Width="36" Height="36">
+                <TextBlock Text="📧" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Bildirim Ayarları" FontSize="15" FontWeight="Bold" Foreground="{Binding ThemeText}"/>
+                <TextBlock Text="Email adresleri ve zamanlama" FontSize="11" Foreground="{Binding ThemeTextSecondary}"/>
+              </StackPanel>
+            </StackPanel>
+            
+            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" RowSpacing="12">
+              <TextBlock Grid.Column="0" Text="Email Adresleri:" VerticalAlignment="Top" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBox Text="{Binding EmailsToNotify}" 
+                         Watermark="email1@example.com, email2@example.com" 
+                         AcceptsReturn="True" TextWrapping="Wrap" Height="70"
+                         Background="{Binding ThemeInputBg}" Foreground="{Binding ThemeText}" BorderBrush="{Binding ThemeBorder}" Padding="12,8"/>
+                <TextBlock Text="💡 Birden fazla email virgülle ayırarak yazabilirsiniz." 
+                           FontSize="10" Foreground="{Binding ThemeTextSecondary}"/>
+              </StackPanel>
+            </Grid>
+                       
+            <!-- Mail Zamanlaması -->
+            <Border Background="{Binding ThemeInputBg}" CornerRadius="8" Padding="16" BorderBrush="{Binding ThemeBorder}" BorderThickness="1">
+              <StackPanel Spacing="12">
+                <CheckBox Content="📅 Zamanlanmış Email Gönderimi Aktif" IsChecked="{Binding EnableScheduledEmail}" 
+                          Foreground="{Binding ThemeText}" FontSize="13"/>
+                
+                <Grid ColumnDefinitions="120,*" IsVisible="{Binding EnableScheduledEmail}">
+                  <TextBlock Grid.Column="0" Text="Gönderim Aralığı:" VerticalAlignment="Center" Foreground="{Binding ThemeTextSecondary}" FontSize="13"/>
+                  <ComboBox Grid.Column="1" SelectedIndex="{Binding EmailIntervalHoursIndex}"
+                            Background="{Binding ThemeCardBg}" Foreground="{Binding ThemeText}" BorderBrush="{Binding ThemeBorder}">
+                    <ComboBoxItem Content="⏱️ 1 Saat"/>
+                    <ComboBoxItem Content="⏱️ 6 Saat"/>
+                    <ComboBoxItem Content="⏱️ 12 Saat"/>
+                    <ComboBoxItem Content="⏱️ 24 Saat"/>
+                  </ComboBox>
+                </Grid>
+                
+                <TextBlock Text="ℹ️ Zamanlanmış emailler yeni ilanları toplu olarak gönderir." 
+                           FontSize="10" Foreground="{Binding ThemeTextSecondary}"
+                           IsVisible="{Binding EnableScheduledEmail}"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+
+        <!-- Test Results -->
+        <Border Background="#10B98120" CornerRadius="12" Padding="20" BorderBrush="#10B981" BorderThickness="1"
+                IsVisible="{Binding TestResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <StackPanel Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <TextBlock Text="🧪" FontSize="16"/>
+              <TextBlock Text="Test Sonucu" FontSize="14" FontWeight="Bold" Foreground="#10B981"/>
+              <Border Background="#10B981" CornerRadius="10" Padding="8,2">
+                <TextBlock Text="{Binding MatchedListingsCount, StringFormat='{}{0} eşleşme'}" FontSize="11" Foreground="White"/>
+              </Border>
+            </StackPanel>
+            <TextBlock Text="{Binding TestResultMessage}" FontSize="12" Foreground="{Binding ThemeText}" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Message -->
+    <Border Grid.Row="2" Background="#10B98120" Padding="16" Margin="24,0,24,12" CornerRadius="8"
+            IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Text="{Binding Message}" Foreground="#10B981" TextWrapping="Wrap" FontSize="13"/>
+    </Border>
+
+    <!-- Buttons -->
+    <Border Grid.Row="3" Background="{Binding ThemeCardBg}" Padding="24,16">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Button Grid.Column="0" Content="🧪 Kuralı Test Et" Command="{Binding TestRuleCommand}"
+                Background="#F59E0B" Foreground="White" Padding="20,10" FontWeight="600"/>
+        
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
+          <Button Content="İptal" Command="{Binding CancelCommand}"
+                  Background="#64748B" Foreground="White" Padding="20,10"/>
+          <Button Content="💾 Kaydet" Command="{Binding SaveCommand}"
+                  Background="#10B981" Foreground="White" Padding="20,10" FontWeight="600"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+  </Grid>
+
+</Window>

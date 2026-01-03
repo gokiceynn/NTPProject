@@ -1,0 +1,164 @@
+using Microsoft.Playwright;
+using ListingMonitor.Infrastructure.Scraping;
+
+namespace ListingMonitor.Infrastructure.Scraping.Adapters;
+
+public class MicrofonAdapter : ISiteAdapter
+{
+    public string SourceName => "microfon";
+    public string BaseUrl => "https://microfon.co/en/scholarship?level=abroad";
+
+    public async Task<List<ListingDto>> ScrapeAsync(IPage page)
+    {
+        var listings = new List<ListingDto>();
+        
+        try
+        {
+            // Sayfayı yükle, dynamic content bekle
+            await page.GotoAsync(BaseUrl, new PageGotoOptions 
+            { 
+                WaitUntil = WaitUntilState.NetworkIdle,
+                Timeout = 30000 
+            });
+            
+            // "All Scholarships" bölümünün yüklenmesini bekle
+            await page.Locator("//section[.//text()[contains(., 'All Scholarships') or contains(., 'Tüm Burslar')]]").WaitForAsync(new LocatorWaitForOptions
+            {
+                Timeout = 10000
+            });
+            
+            // Burs kartlarını bul
+            var scholarshipCards = await page.QuerySelectorAllAsync(
+                "//section[.//text()[contains(., 'All Scholarships') or contains(., 'Tüm Burslar')]]//a[contains(@href, '/scholarship') and @href != '']"
+            );
+            
+            Console.WriteLine($"Microfon: {scholarshipCards.Count} burs kartı bulundu");
+            
+            foreach (var card in scholarshipCards)
+            {
+                try
+                {
+                    var listing = await ExtractListingFromCard(card);
+                    if (listing != null)
+                    {
+                        listings.Add(listing);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Microfon kart işleme hatası: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Microfon scraping hatası: {ex.Message}");
+        }
+        
+        return listings;
+    }
+    
+    private async Task<ListingDto?> ExtractListingFromCard(IElementHandle card)
+    {
+        // URL'i al
+        var href = await card.GetAttributeAsync("href");
+        if (string.IsNullOrWhiteSpace(href))
+            return null;
+            
+        // Başlığı bul
+        var titleElement = await card.QuerySelectorAsync(".//h3 | .//h2 | .//div[contains(@class,'title')]");
+        var title = titleElement != null ? await titleElement.TextContentAsync() : string.Empty;
+        
+        if (string.IsNullOrWhiteSpace(title))
+            return null;
+            
+        // Açıklamayı bul
+        var descriptionElement = await card.QuerySelectorAsync(".//p[contains(@class,'description')] | .//div[contains(@class,'description')]");
+        var description = descriptionElement != null ? await descriptionElement.TextContentAsync() : string.Empty;
+        
+        // Sağlayıcı/kurum bilgisini bul
+        var providerElement = await card.QuerySelectorAsync(".//div[contains(@class,'provider')] | .//span[contains(@class,'provider')]");
+        var provider = providerElement != null ? await providerElement.TextContentAsync() : string.Empty;
+        
+        // Tarih bilgisini bul
+        var dateElement = await card.QuerySelectorAsync(".//div[contains(@class,'date')] | .//span[contains(@class,'date')]");
+        var dateText = dateElement != null ? await dateElement.TextContentAsync() : string.Empty;
+        
+        // Miktar bilgisini bul
+        var amountElement = await card.QuerySelectorAsync(".//div[contains(@class,'amount')] | .//span[contains(@class,'amount')]");
+        var amountText = amountElement != null ? await amountElement.TextContentAsync() : string.Empty;
+        
+        var listing = new ListingDto
+        {
+            Source = SourceName,
+            Title = title.Trim(),
+            Company = provider.Trim(),
+            Url = new Uri("https://microfon.co").GetLeftPart(UriPartial.Authority) + href,
+            ExternalId = GenerateExternalId(href),
+            Description = description.Trim(),
+            ListingType = "scholarship"
+        };
+        
+        // Tarih bilgisini parse et
+        if (!string.IsNullOrWhiteSpace(dateText))
+        {
+            listing.CreatedAtOnSite = ParseDate(dateText);
+        }
+        
+        // Miktar bilgisini parse et
+        if (!string.IsNullOrWhiteSpace(amountText))
+        {
+            ParseAmount(amountText, listing);
+        }
+        
+        return listing;
+    }
+    
+    private DateTime? ParseDate(string dateText)
+    {
+        // "03.02.2025 - 30.11.2025" formatını parse et
+        var dateParts = dateText.Split('-', StringSplitOptions.RemoveEmptyEntries);
+        if (dateParts.Length > 0)
+        {
+            var firstDate = dateParts[0].Trim();
+            if (DateTime.TryParse(firstDate, out var date))
+            {
+                return date;
+            }
+        }
+        return null;
+    }
+    
+    private void ParseAmount(string amountText, ListingDto listing)
+    {
+        // "33.624 USD / 3 Yıl" formatını parse et
+        var amountMatch = System.Text.RegularExpressions.Regex.Match(amountText, @"([\d.,]+)\s*([A-Z]{3})");
+        if (amountMatch.Success)
+        {
+            var amountStr = amountMatch.Groups[1].Value.Replace(".", "").Replace(",", ".");
+            if (decimal.TryParse(amountStr, out var amount))
+            {
+                listing.Price = amount;
+                listing.Currency = amountMatch.Groups[2].Value;
+            }
+        }
+    }
+    
+    private string GenerateExternalId(string url)
+    {
+        return $"microfon_{url.GetHashCode()}";
+    }
+    
+    public async Task<bool> IsAvailableAsync(IPage page)
+    {
+        try
+        {
+            var response = await page.GotoAsync(BaseUrl, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+            return response?.Ok == true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}

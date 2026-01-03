@@ -1,0 +1,68 @@
+using Microsoft.Playwright;
+
+class DOMChecker
+{
+    static async Task Main()
+    {
+        Console.WriteLine("🔍 Microfon & Bursverenler DOM Checker");
+        Console.WriteLine("=======================================");
+        
+        var sites = new[]
+        {
+            new { Name = "Microfon", Url = "https://microfon.co/scholarship" },
+            new { Name = "Bursverenler", Url = "https://bursverenler.org/?lang=tr" }
+        };
+        
+        var playwright = await Playwright.CreateAsync();
+        var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+        {
+            Headless = false, // Görmek için
+            SlowMo = 500
+        });
+        
+        foreach (var site in sites)
+        {
+            try
+            {
+                Console.WriteLine($"\n🌐 {site.Name} inceleniyor...");
+                var page = await browser.NewPageAsync();
+                
+                await page.GotoAsync(site.Url, new PageGotoOptions 
+                { 
+                    WaitUntil = WaitUntilState.NetworkIdle,
+                    Timeout = 60000 
+                });
+                
+                // Screenshot al
+                await page.ScreenshotAsync(new PageScreenshotOptions 
+                { 
+                    Path = $"{site.Name.ToLower()}_dom_check.png",
+                    FullPage = true 
+                });
+                
+                // HTML'i kaydet
+                var html = await page.ContentAsync();
+                await File.WriteAllTextAsync($"{site.Name.ToLower()}_dom.html", html);
+                
+                Console.WriteLine($"   ✅ {site.Name} DOM'u kaydedildi");
+                Console.WriteLine($"   📄 {site.Name.ToLower()}_dom.html");
+                Console.WriteLine($"   📷 {site.Name.ToLower()}_dom_check.png");
+                
+                await page.CloseAsync();
+                
+                Console.WriteLine("Devam etmek için Enter...");
+                Console.ReadLine();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"   ❌ {site.Name} hatası: {ex.Message}");
+            }
+        }
+        
+        await browser.CloseAsync();
+        playwright.Dispose();
+        
+        Console.WriteLine("\n🎯 DOM kontrol tamamlandı!");
+        Console.WriteLine("Şimdi HTML dosyalarını açıp doğru selector'ları bulabiliriz.");
+    }
+}

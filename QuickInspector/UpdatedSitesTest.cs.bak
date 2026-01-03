@@ -1,0 +1,106 @@
+using System.Net.Http;
+using HtmlAgilityPack;
+using ListingMonitor.Infrastructure.Scraping.Adapters;
+
+namespace ListingMonitor.Test;
+
+public class UpdatedSitesTest
+{
+    public static async Task Main(string[] args)
+    {
+        Console.WriteLine("🌐 3 Aktif Site - Güncel DOM Testi");
+        Console.WriteLine("===================================");
+        
+        var adapters = new List<ISiteAdapter>
+        {
+            new YouthallAdapter(),      // ✅ Çalışıyor (86 kayıt)
+            new MicrofonAdapter(),      // 🔧 Güncellendi
+            new BursverenlerAdapter()   // 🔧 Güncellendi
+        };
+        
+        var allListings = new List<(string Source, int Count)>();
+        
+        foreach (var adapter in adapters)
+        {
+            try
+            {
+                Console.WriteLine($"\n🚀 {adapter.SourceName.ToUpper()} (Güncel) scraping başlatılıyor...");
+                
+                // Availability kontrolü
+                var isAvailable = await adapter.IsAvailableAsync();
+                Console.WriteLine($"   📡 Site durumu: {(isAvailable ? "✅ Aktif" : "❌ Pasif")}");
+                
+                if (!isAvailable)
+                {
+                    Console.WriteLine($"   ⚠️ {adapter.SourceName} sitesine ulaşılamıyor, atlanıyor...");
+                    allListings.Add((adapter.SourceName, 0));
+                    continue;
+                }
+                
+                var listings = await adapter.ScrapeAsync();
+                
+                Console.WriteLine($"   📊 Sonuç: {listings.Count} kayıt çekildi");
+                
+                if (listings.Any())
+                {
+                    Console.WriteLine($"   🏆 İlk 2 kayıt:");
+                    foreach (var listing in listings.Take(2))
+                    {
+                        Console.WriteLine($"      • {listing.Title}");
+                        Console.WriteLine($"        🏢 {listing.Company}");
+                        Console.WriteLine($"        🔗 {listing.Url}");
+                        if (!string.IsNullOrWhiteSpace(listing.Description))
+                        {
+                            Console.WriteLine($"        📝 {listing.Description}");
+                        }
+                        Console.WriteLine();
+                    }
+                }
+                
+                allListings.Add((adapter.SourceName, listings.Count));
+                
+                // Rate limiting between sites
+                await Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"   ❌ {adapter.SourceName} hatası: {ex.Message}");
+                allListings.Add((adapter.SourceName, 0));
+            }
+            finally
+            {
+                adapter.Dispose();
+            }
+        }
+        
+        // Özet
+        Console.WriteLine("\n🎯 GÜNCEL SONUÇLAR");
+        Console.WriteLine("==================");
+        var totalListings = allListings.Sum(x => x.Count);
+        
+        foreach (var (source, count) in allListings)
+        {
+            var status = count > 0 ? "✅" : "❌";
+            Console.WriteLine($"   {status} {source.PadRight(15)}: {count} kayıt");
+        }
+        
+        Console.WriteLine($"   {new string('-', 18)}: -");
+        Console.WriteLine($"   📊 TOPLAM         : {totalListings} kayıt");
+        
+        if (totalListings > 0)
+        {
+            Console.WriteLine("\n🎉 BAŞARILI! Güncel DOM yapıları çalışıyor.");
+            Console.WriteLine("🚀 Artık bu 3 adapter mevcut sisteme entegre edilebilir!");
+            
+            var workingCount = allListings.Count(x => x.Count > 0);
+            Console.WriteLine($"📈 {workingCount}/3 site başarıyla veri çekiyor.");
+        }
+        else
+        {
+            Console.WriteLine("\n❌ Hiç veri çekilemedi. DOM yapıları tekrar kontrol edilmeli.");
+        }
+        
+        Console.WriteLine("\n🏁 Test tamamlandı! Çıkmak için Enter...");
+        Console.ReadLine();
+    }
+}

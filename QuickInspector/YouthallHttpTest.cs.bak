@@ -1,0 +1,62 @@
+using System.Net.Http;
+using HtmlAgilityPack;
+using ListingMonitor.Infrastructure.Scraping.Adapters;
+
+namespace ListingMonitor.Test;
+
+public class YouthallHttpTest
+{
+    public static async Task Main(string[] args)
+    {
+        Console.WriteLine("🌐 Youthall Pagination Test (Tüm Sayfalar)");
+        Console.WriteLine("=============================================");
+        
+        var adapter = new YouthallAdapter();
+        
+        try
+        {
+            Console.WriteLine("🚀 Youthall pagination scraping başlatılıyor...");
+            Console.WriteLine("⏱️ Bu işlem biraz sürebilir (18 sayfa ~ 18 saniye)...");
+            
+            var listings = await adapter.ScrapeAsync();
+            
+            Console.WriteLine($"\n📊 Sonuçlar:");
+            Console.WriteLine($"   ✅ Toplam {listings.Count} ilan bulundu");
+            
+            if (listings.Any())
+            {
+                Console.WriteLine("\n🏆 İlk 5 ilan:");
+                foreach (var listing in listings.Take(5))
+                {
+                    Console.WriteLine($"   • {listing.Title}");
+                    Console.WriteLine($"     🏢 {listing.Company}");
+                    Console.WriteLine($"     🔗 {listing.Url}");
+                    if (!string.IsNullOrWhiteSpace(listing.Description))
+                    {
+                        Console.WriteLine($"     📝 {listing.Description}");
+                    }
+                    Console.WriteLine();
+                }
+                
+                Console.WriteLine("🎯 Pagination BAŞARILI! Tüm sayfalar tarandı.");
+                Console.WriteLine("📈 Artık bu adapter mevcut sisteminize entegre edilebilir!");
+            }
+            else
+            {
+                Console.WriteLine("❌ Hiç ilan bulunamadı.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"\n❌ Test hatası: {ex.Message}");
+            Console.WriteLine($"   Stack: {ex.StackTrace}");
+        }
+        finally
+        {
+            adapter.Dispose();
+        }
+        
+        Console.WriteLine("\n🎉 Test tamamlandı! Çıkmak için Enter...");
+        Console.ReadLine();
+    }
+}

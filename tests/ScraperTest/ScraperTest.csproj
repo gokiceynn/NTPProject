@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ListingMonitor.Infrastructure\ListingMonitor.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\ListingMonitor.Application\ListingMonitor.Application.csproj" />
+    <ProjectReference Include="..\..\src\ListingMonitor.Domain\ListingMonitor.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,102 @@
+using System.Net.Http;
+using HtmlAgilityPack;
+using ListingMonitor.Infrastructure.Scraping.Adapters;
+
+namespace ListingMonitor.Test;
+
+public class AllSitesTest
+{
+    public static async Task Main(string[] args)
+    {
+        Console.WriteLine("🌐 Tüm Siteler Scraping Testi");
+        Console.WriteLine("==============================");
+        
+        var adapters = new List<ISiteAdapter>
+        {
+            new YouthallAdapter(),
+            new MicrofonAdapter(),
+            new BursverenlerAdapter(),
+            new IlanburdaAdapter()
+        };
+        
+        var allListings = new List<(string Source, int Count)>();
+        
+        foreach (var adapter in adapters)
+        {
+            try
+            {
+                Console.WriteLine($"\n🚀 {adapter.SourceName.ToUpper()} scraping başlatılıyor...");
+                
+                // Availability kontrolü
+                var isAvailable = await adapter.IsAvailableAsync();
+                Console.WriteLine($"   📡 Site durumu: {(isAvailable ? "✅ Aktif" : "❌ Pasif")}");
+                
+                if (!isAvailable)
+                {
+                    Console.WriteLine($"   ⚠️ {adapter.SourceName} sitesine ulaşılamıyor, atlanıyor...");
+                    continue;
+                }
+                
+                var listings = await adapter.ScrapeAsync();
+                
+                Console.WriteLine($"   📊 Sonuç: {listings.Count} kayıt çekildi");
+                
+                if (listings.Any())
+                {
+                    Console.WriteLine($"   🏆 İlk 3 kayıt:");
+                    foreach (var listing in listings.Take(3))
+                    {
+                        Console.WriteLine($"      • {listing.Title}");
+                        Console.WriteLine($"        🏢 {listing.Company}");
+                        Console.WriteLine($"        🔗 {listing.Url}");
+                        if (!string.IsNullOrWhiteSpace(listing.Description))
+                        {
+                            Console.WriteLine($"        📝 {listing.Description}");
+                        }
+                        Console.WriteLine();
+                    }
+                }
+                
+                allListings.Add((adapter.SourceName, listings.Count));
+                
+                // Rate limiting between sites
+                await Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"   ❌ {adapter.SourceName} hatası: {ex.Message}");
+                allListings.Add((adapter.SourceName, 0));
+            }
+            finally
+            {
+                adapter.Dispose();
+            }
+        }
+        
+        // Özet
+        Console.WriteLine("\n🎯 TOPLAM ÖZET");
+        Console.WriteLine("================");
+        var totalListings = allListings.Sum(x => x.Count);
+        
+        foreach (var (source, count) in allListings)
+        {
+            Console.WriteLine($"   {source.PadRight(15)}: {count} kayıt");
+        }
+        
+        Console.WriteLine($"   {new string('-', 15)}: -");
+        Console.WriteLine($"   {"TOPLAM".PadRight(15)}: {totalListings} kayıt");
+        
+        if (totalListings > 0)
+        {
+            Console.WriteLine("\n✅ TÜM SİTELER BAŞARILI! Veriler çekildi.");
+            Console.WriteLine("🎉 Artık bu adapter'lar mevcut sisteme entegre edilebilir!");
+        }
+        else
+        {
+            Console.WriteLine("\n❌ Hiç veri çekilemedi. Site yapıları değişmiş olabilir.");
+        }
+        
+        Console.WriteLine("\n🏁 Test tamamlandı! Çıkmak için Enter...");
+        Console.ReadLine();
+    }
+}

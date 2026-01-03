@@ -1,0 +1,136 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ListingMonitor.UI.ViewModels"
+        xmlns:enums="clr-namespace:ListingMonitor.Domain.Enums;assembly=ListingMonitor.Domain"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="700"
+        x:Class="ListingMonitor.UI.Views.SiteEditWindow"
+        x:DataType="vm:SiteEditViewModel"
+        Title="{Binding WindowTitle}"
+        Width="600" Height="700"
+        WindowStartupLocation="CenterOwner">
+
+  <Design.DataContext>
+    <vm:SiteEditViewModel/>
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto,*,Auto,Auto">
+    <!-- Header -->
+    <Border Grid.Row="0" Background="#2C3E50" Padding="20">
+      <TextBlock Text="{Binding WindowTitle}" 
+                 FontSize="18" FontWeight="Bold" Foreground="White"/>
+    </Border>
+
+    <!-- Content -->
+    <ScrollViewer Grid.Row="1" Padding="20">
+      <StackPanel Spacing="15">
+        
+        <!-- Basic Info -->
+        <Border Background="White" CornerRadius="8" Padding="15" BoxShadow="0 2 8 #20000000">
+          <StackPanel Spacing="10">
+            <TextBlock Text="🌐 Temel Bilgiler" FontSize="14" FontWeight="Bold" Foreground="#2C3E50"/>
+            
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+              <TextBlock Grid.Column="0" Grid.Row="0" Text="Site Adı:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+              <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Name}" Watermark="Örn: Microfon Burslar"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="1" Text="URL:" VerticalAlignment="Center" Margin="0,10,10,0"/>
+              <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding BaseUrl}" Watermark="https://example.com" Margin="0,10,0,0"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="2" Text="Site Tipi:" VerticalAlignment="Center" Margin="0,10,10,0"/>
+              <ComboBox Grid.Column="1" Grid.Row="2" SelectedIndex="{Binding SiteTypeIndex}" Margin="0,10,0,0">
+                <ComboBoxItem Content="Manual (Özel Selector)"/>
+                <ComboBoxItem Content="AutoSupported (Otomatik)"/>
+              </ComboBox>
+              
+              <CheckBox Grid.Column="1" Grid.Row="3" Content="Aktif" IsChecked="{Binding IsActive}" Margin="0,10,0,0"/>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- Parser Config (only for Manual sites) -->
+        <Border Background="White" CornerRadius="8" Padding="15" BoxShadow="0 2 8 #20000000"
+                IsVisible="{Binding IsManualSite}">
+          <StackPanel Spacing="10">
+            <TextBlock Text="⚙️ Parser Konfigürasyonu" FontSize="14" FontWeight="Bold" Foreground="#2C3E50"/>
+            
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+              <TextBlock Grid.Column="0" Grid.Row="0" Text="Seçici Tipi:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+              <ComboBox Grid.Column="1" Grid.Row="0" SelectedIndex="{Binding SelectorTypeIndex}">
+                <ComboBoxItem Content="CSS"/>
+                <ComboBoxItem Content="XPath"/>
+              </ComboBox>
+              
+              <TextBlock Grid.Column="0" Grid.Row="1" Text="İlan Kartı:" VerticalAlignment="Top" Margin="0,10,10,0"/>
+              <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding ListingItemSelector}" 
+                       Watermark="//div[@class='listing-item']" 
+                       AcceptsReturn="True" TextWrapping="Wrap" Height="60" Margin="0,10,0,0"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="2" Text="Başlık:" VerticalAlignment="Top" Margin="0,10,10,0"/>
+              <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding TitleSelector}" 
+                       Watermark=".//h3[@class='title']/text()" 
+                       AcceptsReturn="True" TextWrapping="Wrap" Height="60" Margin="0,10,0,0"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="3" Text="Fiyat:" VerticalAlignment="Top" Margin="0,10,10,0"/>
+              <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding PriceSelector}" 
+                       Watermark=".//span[@class='price']/text()" 
+                       AcceptsReturn="True" TextWrapping="Wrap" Height="60" Margin="0,10,0,0"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="4" Text="URL:" VerticalAlignment="Top" Margin="0,10,10,0"/>
+              <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding UrlSelector}" 
+                       Watermark=".//a[@class='link']/@href" 
+                       AcceptsReturn="True" TextWrapping="Wrap" Height="60" Margin="0,10,0,0"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="5" Text="Tarih:" VerticalAlignment="Top" Margin="0,10,10,0"/>
+              <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding DateSelector}" 
+                       Watermark=".//div[@class='date']/text()" 
+                       AcceptsReturn="True" TextWrapping="Wrap" Height="60" Margin="0,10,0,0"/>
+              
+              <TextBlock Grid.Column="0" Grid.Row="6" Text="İlan ID:" VerticalAlignment="Top" Margin="0,10,10,0"/>
+              <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding ListingIdSelector}" 
+                       Watermark=".//a/@data-id" 
+                       AcceptsReturn="True" TextWrapping="Wrap" Height="60" Margin="0,10,0,0"/>
+            </Grid>
+            
+            <TextBlock Text="Encoding:" Margin="0,10,0,5"/>
+            <TextBox Text="{Binding Encoding}" Watermark="UTF-8"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Check Interval -->
+        <Border Background="White" CornerRadius="8" Padding="15" BoxShadow="0 2 8 #20000000">
+          <StackPanel Spacing="10">
+            <TextBlock Text="⏰ Kontrol Aralığı" FontSize="14" FontWeight="Bold" Foreground="#2C3E50"/>
+            <Grid ColumnDefinitions="Auto,*">
+              <TextBlock Grid.Column="0" Text="Dakika cinsinden:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+              <NumericUpDown Grid.Column="1" Value="{Binding CheckIntervalMinutes}" Minimum="1" Maximum="1440" 
+                             FormatString="N0" Watermark="Boş bırakılırsa global ayar kullanılır"/>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Message -->
+    <Border Grid.Row="2" Background="#E8F5E8" Padding="15" Margin="20,0,20,10" CornerRadius="5"
+            IsVisible="{Binding Message, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <TextBlock Text="{Binding Message}" Foreground="#2E7D32" TextWrapping="Wrap"/>
+    </Border>
+
+    <!-- Buttons -->
+    <Border Grid.Row="3" Background="#F8F9FA" Padding="20,15">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+        <Button Content="🧪 Seçicileri Test Et" Command="{Binding TestSelectorsCommand}"
+                Background="#FF9800" Foreground="White" Padding="15,8"/>
+        <Button Content="İptal" Command="{Binding CancelCommand}"
+                Background="#9E9E9E" Foreground="White" Padding="15,8"/>
+        <Button Content="💾 Kaydet" Command="{Binding SaveCommand}"
+                Background="#4CAF50" Foreground="White" Padding="15,8"/>
+      </StackPanel>
+    </Border>
+
+  </Grid>
+
+</Window>

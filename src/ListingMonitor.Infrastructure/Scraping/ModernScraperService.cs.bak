@@ -1,0 +1,170 @@
+using Microsoft.Playwright;
+using ListingMonitor.Infrastructure.Scraping;
+using ListingMonitor.Infrastructure.Scraping.Adapters;
+
+namespace ListingMonitor.Infrastructure.Scraping;
+
+public class ModernScraperService : IAsyncDisposable
+{
+    private readonly IPlaywright _playwright;
+    private IBrowser? _browser;
+    private readonly Dictionary<string, ISiteAdapter> _adapters;
+    
+    public ModernScraperService()
+    {
+        _adapters = new Dictionary<string, ISiteAdapter>
+        {
+            ["youthall"] = new YouthallAdapter(),
+            ["secretcv"] = new SecretcvAdapter(),
+            ["microfon"] = new MicrofonAdapter()
+        };
+        
+        // Playwright'i başlat
+        _playwright = Playwright.CreateAsync().Result;
+    }
+    
+    private async Task<IBrowser> GetBrowserAsync()
+    {
+        if (_browser == null || !_browser.IsConnected)
+        {
+            _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            {
+                Headless = true,
+                Args = new[]
+                {
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--disable-web-security",
+                    "--disable-features=VizDisplayCompositor"
+                }
+            });
+        }
+        return _browser;
+    }
+    
+    /// <summary>
+    /// Tüm sitelerden ilanları çeker
+    /// </summary>
+    public async Task<List<ListingDto>> ScrapeAllSitesAsync()
+    {
+        var allListings = new List<ListingDto>();
+        var browser = await GetBrowserAsync();
+        
+        // Her site için ayrı page oluştur ve parallel çalıştır
+        var tasks = _adapters.Select(async adapter =>
+        {
+            try
+            {
+                var page = await browser.NewPageAsync();
+                
+                // User agent ve diğer ayarlar
+                await page.AddInitScriptAsync(@"Object.defineProperty(navigator, 'webdriver', {get: () => undefined})");
+                
+                // Viewport ayarla
+                await page.SetViewportSizeAsync(1920, 1080);
+                
+                Console.WriteLine($"🚀 {adapter.Key} scraping başlatılıyor...");
+                
+                var listings = await adapter.Value.ScrapeAsync(page);
+                
+                Console.WriteLine($"✅ {adapter.Key}: {listings.Count} ilan bulundu");
+                
+                await page.CloseAsync();
+                return listings;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ {adapter.Key} scraping hatası: {ex.Message}");
+                return new List<ListingDto>();
+            }
+        });
+        
+        var results = await Task.WhenAll(tasks);
+        
+        // Tüm sonuçları birleştir
+        foreach (var siteListings in results)
+        {
+            allListings.AddRange(siteListings);
+        }
+        
+        Console.WriteLine($"🎯 Toplam {allListings.Count} ilan çekildi");
+        return allListings;
+    }
+    
+    /// <summary>
+    /// Belirli bir siteden ilan çeker
+    /// </summary>
+    public async Task<List<ListingDto>> ScrapeSiteAsync(string siteName)
+    {
+        if (!_adapters.TryGetValue(siteName, out var adapter))
+        {
+            throw new ArgumentException($"Bilinmeyen site: {siteName}");
+        }
+        
+        var browser = await GetBrowserAsync();
+        var page = await browser.NewPageAsync();
+        
+        try
+        {
+            await page.AddInitScriptAsync(@"Object.defineProperty(navigator, 'webdriver', {get: () => undefined})");
+            await page.SetViewportSizeAsync(1920, 1080);
+            
+            Console.WriteLine($"🚀 {siteName} scraping başlatılıyor...");
+            
+            var listings = await adapter.ScrapeAsync(page);
+            
+            Console.WriteLine($"✅ {siteName}: {listings.Count} ilan bulundu");
+            
+            return listings;
+        }
+        finally
+        {
+            await page.CloseAsync();
+        }
+    }
+    
+    /// <summary>
+    /// Site availability kontrolü
+    /// </summary>
+    public async Task<Dictionary<string, bool>> CheckSitesAvailabilityAsync()
+    {
+        var browser = await GetBrowserAsync();
+        var results = new Dictionary<string, bool>();
+        
+        var tasks = _adapters.Select(async adapter =>
+        {
+            try
+            {
+                var page = await browser.NewPageAsync();
+                var isAvailable = await adapter.Value.IsAvailableAsync(page);
+                await page.CloseAsync();
+                
+                return new { Site = adapter.Key, IsAvailable = isAvailable };
+            }
+            catch
+            {
+                return new { Site = adapter.Key, IsAvailable = false };
+            }
+        });
+        
+        var availabilityResults = await Task.WhenAll(tasks);
+        
+        foreach (var result in availabilityResults)
+        {
+            results[result.Site] = result.IsAvailable;
+        }
+        
+        return results;
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (_browser != null)
+        {
+            await _browser.CloseAsync();
+        }
+        
+        _playwright?.Dispose();
+    }
+}
